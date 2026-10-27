@@ -1,0 +1,11 @@
+INSERT INTO app_user(full_name,email,role) VALUES('Aarav Patient','patient@carebridge.test','PATIENT'),('Ananya Admin','admin@carebridge.test','ADMIN'),('Rohan Reception','reception@carebridge.test','RECEPTIONIST'),('Mira Billing','billing@carebridge.test','BILLING_STAFF') ON CONFLICT(email) DO NOTHING;
+INSERT INTO patient(user_id,patient_no,phone,date_of_birth,address) SELECT user_id,'CB-P-0001','9000000001','2005-01-01','Mumbai' FROM app_user WHERE email='patient@carebridge.test' ON CONFLICT(user_id) DO NOTHING;
+INSERT INTO department(department_name) VALUES('General Medicine'),('Cardiology'),('Orthopedics'),('Dermatology') ON CONFLICT(department_name) DO NOTHING;
+INSERT INTO doctor(full_name,department_id,specialization) SELECT 'Dr. Kavya Sharma',department_id,'General Physician' FROM department WHERE department_name='General Medicine' AND NOT EXISTS(SELECT 1 FROM doctor WHERE full_name='Dr. Kavya Sharma');
+INSERT INTO doctor(full_name,department_id,specialization) SELECT 'Dr. Neil Mehta',department_id,'Cardiologist' FROM department WHERE department_name='Cardiology' AND NOT EXISTS(SELECT 1 FROM doctor WHERE full_name='Dr. Neil Mehta');
+INSERT INTO ward(ward_name,floor) VALUES('General Ward','2'),('Private Ward','3') ON CONFLICT(ward_name) DO NOTHING;
+INSERT INTO room_type(type_name,default_daily_rate) VALUES('General',1500),('Private',4000) ON CONFLICT(type_name) DO NOTHING;
+INSERT INTO room(room_number,ward_id,room_type_id) SELECT 'G-201',w.ward_id,t.room_type_id FROM ward w CROSS JOIN room_type t WHERE w.ward_name='General Ward' AND t.type_name='General' ON CONFLICT(room_number) DO NOTHING;
+INSERT INTO room(room_number,ward_id,room_type_id) SELECT 'P-301',w.ward_id,t.room_type_id FROM ward w CROSS JOIN room_type t WHERE w.ward_name='Private Ward' AND t.type_name='Private' ON CONFLICT(room_number) DO NOTHING;
+INSERT INTO bed(room_id,bed_label) SELECT room_id,'A' FROM room WHERE room_number IN ('G-201','P-301') ON CONFLICT(room_id,bed_label) DO NOTHING;
+INSERT INTO bed(room_id,bed_label) SELECT room_id,'B' FROM room WHERE room_number='G-201' ON CONFLICT(room_id,bed_label) DO NOTHING;
